@@ -20,6 +20,9 @@ router.post("/login", async (req, res) => {
         res.status(500);
         res.json({ message: "Something went wrong." });
       }
+    } else {
+      res.status(404);
+      res.json({ message: "User not found" });
     }
   } catch (err) {
     res.status(404);
@@ -41,6 +44,9 @@ router.post("/logout", async (req, res) => {
         res.status(500);
         res.json({ message: "Something went wrong." });
       }
+    } else {
+      res.status(404);
+      res.json({ message: "User not found" });
     }
   } catch (err) {
     res.status(404);
