@@ -16,7 +16,8 @@ db.on("error", console.error.bind(console, "connection error:"));
 
 var indexRouter = require("./routes/index");
 var usersRouter = require("./routes/users");
-var calendarRouter = require("./routes/calendar");
+var labelsRouter = require("./routes/labels");
+var eventsRouter = require("./routes/events");
 
 var app = express();
 
@@ -28,5 +29,6 @@ app.use(cookieParser());
 
 app.use("/", indexRouter);
 app.use("/users", usersRouter);
-app.use("/calendar", calendarRouter);
+app.use("/label", labelsRouter);
+app.use("/event", eventsRouter);
 module.exports = app;
