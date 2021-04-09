@@ -9,13 +9,14 @@ const BYTES = 48;
 router.post("/login", async (req, res) => {
   try {
     const users = await User.find(req.body);
+    console.log(users);
     if (users.length === 1) {
       const { _id } = users[0];
       const token = crypto.randomBytes(BYTES).toString("hex");
       const updatedToken = await User.updateOne({ _id }, { token });
       if (updatedToken.nModified) {
         res.status(200);
-        res.json({ token });
+        res.json({ token: `${token}:${users[0]._id}` });
       } else {
         res.status(500);
         res.json({ message: "Something went wrong." });
@@ -25,6 +26,7 @@ router.post("/login", async (req, res) => {
       res.json({ message: "User not found" });
     }
   } catch (err) {
+    console.log(err);
     res.status(404);
     res.json({ message: "User not found" });
   }
@@ -60,20 +62,28 @@ router.post("/register", async (req, res) => {
   const resLogin = await User.find({ login });
   const resEmail = await User.find({ email });
 
-  if (resLogin.length === 0 && resEmail.length === 0) {
+  let message = [];
+
+  if (resLogin.length === 1) {
+    message.push("This login exist in database.");
+  }
+  if (resEmail.length === 1) {
+    message.push("This email exist in database.");
+  }
+  if (message.length !== 0) {
+    res.status(400);
+    res.json({ message });
+  } else {
     try {
       const token = crypto.randomBytes(BYTES).toString("hex");
       const resCreate = await User.create({ ...req.body, token });
 
       res.status(200);
-      res.json({ token });
+      res.json({ token: `${token}:${resCreate._id}` });
     } catch (err) {
       res.status(500);
       res.json({ message: "Database is not responding. Try again later." });
     }
-  } else {
-    res.status(400);
-    res.json({ message: "This user exist in database." });
   }
 });
 
