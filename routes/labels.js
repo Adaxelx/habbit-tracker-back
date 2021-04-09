@@ -1,40 +1,11 @@
 var express = require("express");
 var router = express.Router();
-const { Label, User } = require("../models");
+const { Label } = require("../models");
+const {
+  checkIfUserExist,
+  returnKeyIfExist,
+} = require("../utils/helperFunctions");
 
-const authorizeUser = async (token, userId) => {
-  try {
-    const res = await User.find({ token, _id: userId });
-    if (res.length === 1) {
-      return true;
-    } else {
-      return false;
-    }
-  } catch (err) {
-    return false;
-  }
-};
-
-const checkIfUserExist = async (res, authorization) => {
-  if (!authorization) {
-    res.status(401);
-    res.json({ message: "Missing creditials." });
-    return;
-  }
-
-  const [token, userId] = authorization.split(":");
-
-  const isAuthorized = await authorizeUser(token, userId);
-
-  if (!isAuthorized) {
-    res.status(401);
-    res.json({ message: "User doesn't exist." });
-    return;
-  }
-  return userId;
-};
-
-const returnKeyIfExist = (key, value) => (key ? { [key]: value } : null);
 const isLabelInDb = async (label, id) => {
   const result = await Label.find(label).where("_id").ne(id);
 
@@ -59,7 +30,7 @@ router.get("/all/", async (req, res) => {
 
 router.post("/add/", async (req, res) => {
   const { title } = req.body;
-
+  const { authorization } = req.headers;
   const userId = await checkIfUserExist(res, authorization);
 
   const resLabel = await Label.find({ title, userId });
