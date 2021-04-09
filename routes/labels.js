@@ -15,6 +15,25 @@ const authorizeUser = async (token, userId) => {
   }
 };
 
+const checkIfUserExist = async (res, authorization) => {
+  if (!authorization) {
+    res.status(401);
+    res.json({ message: "Missing creditials." });
+    return;
+  }
+
+  const [token, userId] = authorization.split(":");
+
+  const isAuthorized = await authorizeUser(token, userId);
+
+  if (!isAuthorized) {
+    res.status(401);
+    res.json({ message: "User doesn't exist." });
+    return;
+  }
+  return userId;
+};
+
 const returnKeyIfExist = (key, value) => (key ? { [key]: value } : null);
 const isLabelInDb = async (label, id) => {
   const result = await Label.find(label).where("_id").ne(id);
@@ -26,15 +45,7 @@ const isLabelInDb = async (label, id) => {
 router.get("/all/", async (req, res) => {
   const { authorization } = req.headers;
 
-  const [token, userId] = authorization.split(":");
-
-  const isAuthorized = await authorizeUser(token, userId);
-
-  if (!isAuthorized) {
-    res.status(401);
-    res.json({ message: "User doesn't exist." });
-    return;
-  }
+  const userId = await checkIfUserExist(res, authorization);
 
   try {
     const response = await Label.find({ userId });
@@ -49,17 +60,7 @@ router.get("/all/", async (req, res) => {
 router.post("/add/", async (req, res) => {
   const { title } = req.body;
 
-  const { authorization } = req.headers;
-
-  const [token, userId] = authorization.split(":");
-
-  const isAuthorized = await authorizeUser(token, userId);
-
-  if (!isAuthorized) {
-    res.status(401);
-    res.json({ message: "User doesn't exist." });
-    return;
-  }
+  const userId = await checkIfUserExist(res, authorization);
 
   const resLabel = await Label.find({ title, userId });
 
@@ -84,21 +85,7 @@ router.put("/:id", async (req, res) => {
 
   const { authorization } = req.headers;
 
-  if (!authorization) {
-    res.status(401);
-    res.json({ message: "Missing creditials." });
-    return;
-  }
-
-  const [token, userId] = authorization.split(":");
-
-  const isAuthorized = await authorizeUser(token, userId);
-
-  if (!isAuthorized) {
-    res.status(401);
-    res.json({ message: "User doesn't exist." });
-    return;
-  }
+  const userId = await checkIfUserExist(res, authorization);
 
   let editedObject = { ...returnKeyIfExist("color", color) };
   if (title) {
@@ -114,15 +101,48 @@ router.put("/:id", async (req, res) => {
 
   if (resLabel.length === 1) {
     try {
-      const resCreate = await Label.updateOne({ _id: id }, { ...editedObject });
-      res.status(200);
-      res.end();
+      const resEdit = await Label.updateOne({ _id: id }, { ...editedObject });
+      console.log(resEdit);
+      if (resEdit?.n === 1) {
+        res.status(200);
+        res.json({ message: "Correctly edited." });
+      } else {
+        res.status(500);
+        res.json({ message: "Something went wrong." });
+      }
     } catch (err) {
       res.status(500);
       res.json({ message: "Database is not responding. Try again later." });
     }
   } else {
-    res.status(400);
+    res.status(404);
+    res.json({ message: "You don't have label with this name." });
+  }
+});
+
+router.delete("/:id", async (req, res) => {
+  const { id } = req.params;
+  const { authorization } = req.headers;
+  const userId = await checkIfUserExist(res, authorization);
+
+  const resLabel = await Label.find({ _id: id, userId });
+
+  if (resLabel.length === 1) {
+    try {
+      const resDelete = await Label.deleteOne({ _id: id, userId });
+      if (resDelete?.n === 1) {
+        res.status(204);
+        res.end();
+      } else {
+        res.status(500);
+        res.json({ message: "Something went wronng." });
+      }
+    } catch (err) {
+      res.status(500);
+      res.json({ message: "Database is not responding. Try again later." });
+    }
+  } else {
+    res.status(404);
     res.json({ message: "You don't have label with this name." });
   }
 });
