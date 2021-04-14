@@ -29,6 +29,6 @@ app.use(cookieParser());
 
 app.use("/", indexRouter);
 app.use("/users", usersRouter);
-app.use("/label", labelsRouter);
-app.use("/event", eventsRouter);
+app.use("/labels", labelsRouter);
+app.use("/events", eventsRouter);
 module.exports = app;

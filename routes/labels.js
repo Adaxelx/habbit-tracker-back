@@ -13,7 +13,7 @@ const isLabelInDb = async (label, id) => {
 };
 
 /* GET home page. */
-router.get("/all/", async (req, res) => {
+router.get("/", async (req, res) => {
   const { authorization } = req.headers;
 
   const userId = await checkIfUserExist(res, authorization);
