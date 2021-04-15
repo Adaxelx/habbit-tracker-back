@@ -20,10 +20,33 @@ router.post("/", async (req, res) => {
   }
 
   try {
-    const resCreate = await Event.create({ ...req.body, userId });
+    await Event.create({ ...req.body, userId });
     res.status(201);
     res.end();
   } catch (err) {
+    res.status(500);
+    res.json({ message: "Database is not responding. Try again later." });
+  }
+});
+
+router.get("/", async (req, res) => {
+  const { from, to, exclude } = req.query;
+  const { authorization } = req.headers;
+
+  const userId = await checkIfUserExist(res, authorization);
+
+  try {
+    const resGet = await Event.find({
+      userId,
+      dateStart: { $gte: new Date(from) },
+      dateEnd: { $lte: new Date(to) },
+      label: { $nin: exclude },
+    });
+
+    res.status(200);
+    res.json(resGet);
+  } catch (err) {
+    console.log(err);
     res.status(500);
     res.json({ message: "Database is not responding. Try again later." });
   }
@@ -39,6 +62,12 @@ router.patch("/check/:id", async (req, res) => {
   if (resEvent.length === 0) {
     res.status(404);
     res.json({ message: "Event with this id doesn't exist." });
+    return;
+  }
+
+  if (!resEvent[0].daysOfWeek.includes(new Date(year, month, day).getDay())) {
+    res.status(400);
+    res.json({ message: "Wrong week day. Check if you passed correct day." });
     return;
   }
 
