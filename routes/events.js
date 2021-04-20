@@ -29,11 +29,38 @@ router.post("/", async (req, res) => {
   }
 });
 
+router.patch("/:id", async (req, res) => {
+  const { label } = req.body;
+  const { id } = req.params;
+  const { authorization } = req.headers;
+  const userId = await checkIfUserExist(res, authorization);
+  if (label) {
+    const resLabel = await Label.find({ _id: ObjectID(label) });
+
+    if (resLabel.length === 0) {
+      res.status(404);
+      res.json({ message: "Label with this id doesn't exist." });
+      return;
+    }
+  }
+
+  try {
+    await Event.findOneAndUpdate({ userId, _id: id }, { ...req.body });
+    res.status(201);
+    res.end();
+  } catch (err) {
+    res.status(500);
+    res.json({ message: "Database is not responding. Try again later." });
+  }
+});
+
 router.get("/", async (req, res) => {
   const { from, to, exclude } = req.query;
   const { authorization } = req.headers;
-
+  console.log(process.env.DB);
   const userId = await checkIfUserExist(res, authorization);
+
+  console.log(new Date(from), from, to);
 
   try {
     const resGet = await Event.find({
@@ -46,7 +73,6 @@ router.get("/", async (req, res) => {
     res.status(200);
     res.json(resGet);
   } catch (err) {
-    console.log(err);
     res.status(500);
     res.json({ message: "Database is not responding. Try again later." });
   }
@@ -82,7 +108,7 @@ router.patch("/check/:id", async (req, res) => {
   }
 
   try {
-    const resCreate = await Event.updateOne({
+    await Event.updateOne({
       checked,
     });
     res.status(200);
