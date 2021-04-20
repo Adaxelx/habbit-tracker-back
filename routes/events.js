@@ -57,12 +57,9 @@ router.patch("/:id", async (req, res) => {
 router.get("/", async (req, res) => {
   const { from, to, exclude } = req.query;
   const { authorization } = req.headers;
-  console.log(process.env.DB);
-  const userId = await checkIfUserExist(res, authorization);
-
-  console.log(new Date(from), from, to);
 
   try {
+    const userId = await checkIfUserExist(res, authorization);
     const resGet = await Event.find({
       userId,
       dateStart: { $gte: new Date(from) },
