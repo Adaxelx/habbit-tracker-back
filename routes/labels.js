@@ -21,7 +21,7 @@ router.get("/", async (req, res) => {
   try {
     const response = await Label.find({ userId });
     res.status(200);
-    res.json({ count: response.length, labels: response });
+    res.json(response);
   } catch (err) {
     res.status(500);
     res.json({ message: "Database is not responding. Try again later." });

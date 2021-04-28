@@ -58,8 +58,9 @@ router.get("/", async (req, res) => {
   const { from, to, exclude } = req.query;
   const { authorization } = req.headers;
 
+  const userId = await checkIfUserExist(res, authorization);
+
   try {
-    const userId = await checkIfUserExist(res, authorization);
     const resGet = await Event.find({
       userId,
       dateStart: { $gte: new Date(from) },
