@@ -76,6 +76,32 @@ router.get("/", async (req, res) => {
   }
 });
 
+router.get("/:date", async (req, res) => {
+  const { date } = req.params;
+  const { authorization } = req.headers;
+
+  const userId = await checkIfUserExist(res, authorization);
+  let day = new Date(date).getDay() - 1;
+  if (day === -1) {
+    day = 6;
+  }
+  try {
+    const resGet = await Event.find({
+      userId,
+      daysOfWeek: day,
+      dateStart: { $lte: new Date(date) },
+      dateEnd: { $gte: new Date(date) },
+    });
+
+    res.status(200);
+    res.json(resGet);
+  } catch (err) {
+    console.log(err);
+    res.status(500);
+    res.json({ message: "Database is not responding. Try again later." });
+  }
+});
+
 router.patch("/check/:id", async (req, res) => {
   const { day, month, year } = req.body;
   const { authorization } = req.headers;
