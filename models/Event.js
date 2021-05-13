@@ -1,4 +1,5 @@
 var mongoose = require("mongoose");
+const Label = require("./Label");
 const Schema = mongoose.Schema;
 
 const eventSchema = new Schema({
@@ -8,7 +9,7 @@ const eventSchema = new Schema({
   timeEnd: String,
   dateStart: { type: Date, required: true },
   dateEnd: { type: Date, required: true },
-  label: String,
+  label: String | Label,
   description: String,
   userId: { type: String, required: true },
   checked: [{ day: Number, month: Number, year: Number }],

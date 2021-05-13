@@ -63,14 +63,25 @@ router.get("/", async (req, res) => {
   try {
     const resGet = await Event.find({
       userId,
-      dateStart: { $gte: new Date(from) },
-      dateEnd: { $lte: new Date(to) },
-      label: { $nin: exclude },
+      dateEnd: { $lte: new Date(to), $gte: new Date(from) },
+      // label: { $nin: exclude },
+    });
+
+    const resLabelGet = await Label.find({ userId });
+
+    const response = resGet.map((event) => {
+      const label = resLabelGet.filter(
+        (label) => label._id.toString() === event.label
+      )[0];
+
+      event.label = label;
+      return event;
     });
 
     res.status(200);
-    res.json(resGet);
+    res.json(response);
   } catch (err) {
+    console.log(err);
     res.status(500);
     res.json({ message: "Database is not responding. Try again later." });
   }
@@ -93,8 +104,19 @@ router.get("/:date", async (req, res) => {
       dateEnd: { $gte: new Date(date) },
     });
 
+    const resLabelGet = await Label.find({ userId });
+
+    const response = resGet.map((event) => {
+      const label = resLabelGet.filter(
+        (label) => label._id.toString() === event.label
+      )[0];
+
+      event.label = label;
+      return event;
+    });
+
     res.status(200);
-    res.json(resGet);
+    res.json(response);
   } catch (err) {
     console.log(err);
     res.status(500);
