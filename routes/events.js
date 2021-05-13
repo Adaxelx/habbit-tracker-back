@@ -63,7 +63,8 @@ router.get("/", async (req, res) => {
   try {
     const resGet = await Event.find({
       userId,
-      dateEnd: { $lte: new Date(to), $gte: new Date(from) },
+      dateStart: { $gte: new Date(from), $lte: new Date(to) },
+      dateEnd: { $gte: new Date(to) },
       // label: { $nin: exclude },
     });
 
