@@ -28,7 +28,7 @@ router.get("/", async (req, res) => {
   }
 });
 
-router.post("/add/", async (req, res) => {
+router.post("/", async (req, res) => {
   const { title } = req.body;
   const { authorization } = req.headers;
   const userId = await checkIfUserExist(res, authorization);
