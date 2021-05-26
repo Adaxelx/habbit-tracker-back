@@ -167,3 +167,30 @@ router.patch("/check/:id", async (req, res) => {
 });
 
 module.exports = router;
+
+router.delete("/:id", async (req, res) => {
+  const { id } = req.params;
+  const { authorization } = req.headers;
+  const userId = await checkIfUserExist(res, authorization);
+
+  const resLabel = await Event.find({ _id: id, userId });
+
+  if (resLabel.length === 1) {
+    try {
+      const resDelete = await Event.deleteOne({ _id: id, userId });
+      if (resDelete?.n === 1) {
+        res.status(204);
+        res.end();
+      } else {
+        res.status(500);
+        res.json({ message: "Something went wronng." });
+      }
+    } catch (err) {
+      res.status(500);
+      res.json({ message: "Database is not responding. Try again later." });
+    }
+  } else {
+    res.status(404);
+    res.json({ message: "You don't have label with this name." });
+  }
+});
