@@ -11,12 +11,15 @@ router.post("/", async (req, res) => {
   const { label } = req.body;
   const { authorization } = req.headers;
   const userId = await checkIfUserExist(res, authorization);
-  const resLabel = await Label.find({ _id: ObjectID(label) });
-
-  if (resLabel.length === 0) {
-    res.status(404);
-    res.json({ message: "Label with this id doesn't exist." });
-    return;
+  if (label) {
+    const resLabel = await Label.find({ _id: ObjectID(label) });
+    if (resLabel.length === 0) {
+      res.status(404);
+      res.json({ message: "Label with this id doesn't exist." });
+      return;
+    }
+  } else {
+    req.body.label = undefined;
   }
 
   try {
@@ -29,19 +32,20 @@ router.post("/", async (req, res) => {
   }
 });
 
-router.patch("/:id", async (req, res) => {
+router.put("/:id", async (req, res) => {
   const { label } = req.body;
   const { id } = req.params;
   const { authorization } = req.headers;
   const userId = await checkIfUserExist(res, authorization);
   if (label) {
     const resLabel = await Label.find({ _id: ObjectID(label) });
-
     if (resLabel.length === 0) {
       res.status(404);
       res.json({ message: "Label with this id doesn't exist." });
       return;
     }
+  } else {
+    req.body.label = undefined;
   }
 
   try {
@@ -126,7 +130,8 @@ router.get("/:date", async (req, res) => {
 });
 
 router.patch("/check/:id", async (req, res) => {
-  const { day, month, year } = req.body;
+  console.log(req.body);
+  const [year, month, day] = req.body;
   const { authorization } = req.headers;
   const { id } = req.params;
   const userId = await checkIfUserExist(res, authorization);
@@ -137,8 +142,14 @@ router.patch("/check/:id", async (req, res) => {
     res.json({ message: "Event with this id doesn't exist." });
     return;
   }
+  const date = new Date(year, month, day);
 
-  if (!resEvent[0].daysOfWeek.includes(new Date(year, month, day).getDay())) {
+  let dayCalc = date.getDay();
+  if (dayCalc === 0) {
+    dayCalc = 7;
+  }
+  dayCalc -= 1;
+  if (!resEvent[0].daysOfWeek.includes(dayCalc)) {
     res.status(400);
     res.json({ message: "Wrong week day. Check if you passed correct day." });
     return;
@@ -148,6 +159,7 @@ router.patch("/check/:id", async (req, res) => {
   const index = checked.findIndex(
     (event) => event.day === day && event.month === month && event.year === year
   );
+
   if (index !== -1) {
     checked.splice(index, 1);
   } else {
@@ -155,9 +167,12 @@ router.patch("/check/:id", async (req, res) => {
   }
 
   try {
-    await Event.updateOne({
-      checked,
-    });
+    await Event.updateOne(
+      { userId, _id: id },
+      {
+        checked,
+      }
+    );
     res.status(200);
     res.json({ message: "Pomyślnie zmieniono stan." });
   } catch (err) {
@@ -183,7 +198,7 @@ router.delete("/:id", async (req, res) => {
         res.end();
       } else {
         res.status(500);
-        res.json({ message: "Something went wronng." });
+        res.json({ message: "Something went wrong." });
       }
     } catch (err) {
       res.status(500);
