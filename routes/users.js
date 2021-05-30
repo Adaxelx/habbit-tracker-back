@@ -2,6 +2,7 @@ var express = require("express");
 const crypto = require("crypto");
 var router = express.Router();
 const { User } = require("../models");
+const { checkIfUserExist } = require("../utils/helperFunctions");
 
 const BYTES = 48;
 
@@ -9,7 +10,6 @@ const BYTES = 48;
 router.post("/login", async (req, res) => {
   try {
     const users = await User.find(req.body);
-    console.log(users);
     if (users.length === 1) {
       const { _id } = users[0];
       const token = crypto.randomBytes(BYTES).toString("hex");
@@ -35,10 +35,9 @@ router.post("/login", async (req, res) => {
 router.post("/logout", async (req, res) => {
   const { authorization } = req.headers;
   try {
-    const users = await User.find({ token: authorization });
-    if (users.length === 1) {
-      const { _id } = users[0];
-      const updatedToken = await User.updateOne({ _id }, { token: "" });
+    const userId = await checkIfUserExist(res, authorization);
+    if (userId) {
+      const updatedToken = await User.updateOne({ _id: userId }, { token: "" });
       if (updatedToken.nModified) {
         res.status(200);
         res.json({ message: "Successfuly logedout." });
