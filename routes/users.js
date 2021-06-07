@@ -5,6 +5,7 @@ const { User } = require("../models");
 const {
   checkIfUserExist,
   generateAccessToken,
+  authenticateToken,
 } = require("../utils/helperFunctions");
 
 const BYTES = 48;
@@ -28,12 +29,11 @@ router.post("/login", async (req, res) => {
   }
 });
 
-router.post("/logout", async (req, res) => {
+router.post("/logout", authenticateToken, async (req, res) => {
   const { authorization } = req.headers;
+  const userId = authorization.split(":")[1];
   try {
-    const userId = await checkIfUserExist(res, authorization);
     if (userId) {
-      generateAccessToken(req.body.login);
       res.status(200);
       res.json({ message: "Successfuly logedout." });
     } else {

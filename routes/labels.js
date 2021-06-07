@@ -15,6 +15,8 @@ const isLabelInDb = async (label, id) => {
 
 /* GET home page. */
 router.get("/", authenticateToken, async (req, res) => {
+  const { authorization } = req.headers;
+  const userId = authorization.split(":")[1];
   try {
     const response = await Label.find({ userId });
     res.status(200);
@@ -27,6 +29,8 @@ router.get("/", authenticateToken, async (req, res) => {
 
 router.post("/", authenticateToken, async (req, res) => {
   const { title } = req.body;
+  const { authorization } = req.headers;
+  const userId = authorization.split(":")[1];
 
   const resLabel = await Label.find({ title, userId });
 
@@ -48,6 +52,8 @@ router.post("/", authenticateToken, async (req, res) => {
 router.put("/:id", authenticateToken, async (req, res) => {
   const { id } = req.params;
   const { title, color } = req.body;
+  const { authorization } = req.headers;
+  const userId = authorization.split(":")[1];
 
   let editedObject = { ...returnKeyIfExist("color", color) };
   if (title) {
@@ -84,7 +90,8 @@ router.put("/:id", authenticateToken, async (req, res) => {
 
 router.delete("/:id", authenticateToken, async (req, res) => {
   const { id } = req.params;
-
+  const { authorization } = req.headers;
+  const userId = authorization.split(":")[1];
   const resLabel = await Label.find({ _id: id, userId });
 
   if (resLabel.length === 1) {

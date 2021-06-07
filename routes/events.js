@@ -11,6 +11,7 @@ const {
 router.post("/", authenticateToken, async (req, res) => {
   const { label } = req.body;
   const { authorization } = req.headers;
+  const userId = authorization.split(":")[1];
   // const userId = await checkIfUserExist(res, authorization);
   if (label) {
     const resLabel = await Label.find({ _id: ObjectID(label) });
@@ -37,7 +38,7 @@ router.put("/:id", authenticateToken, async (req, res) => {
   const { label } = req.body;
   const { id } = req.params;
   const { authorization } = req.headers;
-  // const userId = await checkIfUserExist(res, authorization);
+  const userId = authorization.split(":")[1];
   if (label) {
     const resLabel = await Label.find({ _id: ObjectID(label) });
     if (resLabel.length === 0) {
@@ -62,8 +63,7 @@ router.put("/:id", authenticateToken, async (req, res) => {
 router.get("/", authenticateToken, async (req, res) => {
   const { from, to, exclude } = req.query;
   const { authorization } = req.headers;
-
-  // const userId = await checkIfUserExist(res, authorization);
+  const userId = authorization.split(":")[1];
 
   try {
     const resGet = await Event.find({
@@ -96,8 +96,7 @@ router.get("/", authenticateToken, async (req, res) => {
 router.get("/:date", authenticateToken, async (req, res) => {
   const { date } = req.params;
   const { authorization } = req.headers;
-
-  // const userId = await checkIfUserExist(res, authorization);
+  const userId = authorization.split(":")[1];
   let day = new Date(date).getDay() - 1;
   if (day === -1) {
     day = 6;
@@ -134,8 +133,9 @@ router.patch("/check/:id", authenticateToken, async (req, res) => {
   console.log(req.body);
   const [year, month, day] = req.body;
   const { authorization } = req.headers;
+  const userId = authorization.split(":")[1];
   const { id } = req.params;
-  // const userId = await checkIfUserExist(res, authorization);
+
   const resEvent = await Event.find({ _id: ObjectID(id) });
 
   if (resEvent.length === 0) {
@@ -185,7 +185,7 @@ router.patch("/check/:id", authenticateToken, async (req, res) => {
 router.delete("/:id", authenticateToken, async (req, res) => {
   const { id } = req.params;
   const { authorization } = req.headers;
-  // const userId = await checkIfUserExist(res, authorization);
+  const userId = authorization.split(":")[1];
 
   const resLabel = await Event.find({ _id: id, userId });
 
