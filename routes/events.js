@@ -5,12 +5,13 @@ const ObjectID = require("mongodb").ObjectID;
 const {
   checkIfUserExist,
   returnKeyIfExist,
+  authenticateToken,
 } = require("../utils/helperFunctions");
 
-router.post("/", async (req, res) => {
+router.post("/", authenticateToken, async (req, res) => {
   const { label } = req.body;
   const { authorization } = req.headers;
-  const userId = await checkIfUserExist(res, authorization);
+  // const userId = await checkIfUserExist(res, authorization);
   if (label) {
     const resLabel = await Label.find({ _id: ObjectID(label) });
     if (resLabel.length === 0) {
@@ -32,11 +33,11 @@ router.post("/", async (req, res) => {
   }
 });
 
-router.put("/:id", async (req, res) => {
+router.put("/:id", authenticateToken, async (req, res) => {
   const { label } = req.body;
   const { id } = req.params;
   const { authorization } = req.headers;
-  const userId = await checkIfUserExist(res, authorization);
+  // const userId = await checkIfUserExist(res, authorization);
   if (label) {
     const resLabel = await Label.find({ _id: ObjectID(label) });
     if (resLabel.length === 0) {
@@ -58,11 +59,11 @@ router.put("/:id", async (req, res) => {
   }
 });
 
-router.get("/", async (req, res) => {
+router.get("/", authenticateToken, async (req, res) => {
   const { from, to, exclude } = req.query;
   const { authorization } = req.headers;
 
-  const userId = await checkIfUserExist(res, authorization);
+  // const userId = await checkIfUserExist(res, authorization);
 
   try {
     const resGet = await Event.find({
@@ -92,11 +93,11 @@ router.get("/", async (req, res) => {
   }
 });
 
-router.get("/:date", async (req, res) => {
+router.get("/:date", authenticateToken, async (req, res) => {
   const { date } = req.params;
   const { authorization } = req.headers;
 
-  const userId = await checkIfUserExist(res, authorization);
+  // const userId = await checkIfUserExist(res, authorization);
   let day = new Date(date).getDay() - 1;
   if (day === -1) {
     day = 6;
@@ -129,12 +130,12 @@ router.get("/:date", async (req, res) => {
   }
 });
 
-router.patch("/check/:id", async (req, res) => {
+router.patch("/check/:id", authenticateToken, async (req, res) => {
   console.log(req.body);
   const [year, month, day] = req.body;
   const { authorization } = req.headers;
   const { id } = req.params;
-  const userId = await checkIfUserExist(res, authorization);
+  // const userId = await checkIfUserExist(res, authorization);
   const resEvent = await Event.find({ _id: ObjectID(id) });
 
   if (resEvent.length === 0) {
@@ -181,12 +182,10 @@ router.patch("/check/:id", async (req, res) => {
   }
 });
 
-module.exports = router;
-
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", authenticateToken, async (req, res) => {
   const { id } = req.params;
   const { authorization } = req.headers;
-  const userId = await checkIfUserExist(res, authorization);
+  // const userId = await checkIfUserExist(res, authorization);
 
   const resLabel = await Event.find({ _id: id, userId });
 
@@ -209,3 +208,5 @@ router.delete("/:id", async (req, res) => {
     res.json({ message: "You don't have label with this name." });
   }
 });
+
+module.exports = router;

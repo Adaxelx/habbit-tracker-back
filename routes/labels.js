@@ -4,6 +4,7 @@ const { Label } = require("../models");
 const {
   checkIfUserExist,
   returnKeyIfExist,
+  authenticateToken,
 } = require("../utils/helperFunctions");
 
 const isLabelInDb = async (label, id) => {
@@ -13,11 +14,7 @@ const isLabelInDb = async (label, id) => {
 };
 
 /* GET home page. */
-router.get("/", async (req, res) => {
-  const { authorization } = req.headers;
-
-  const userId = await checkIfUserExist(res, authorization);
-
+router.get("/", authenticateToken, async (req, res) => {
   try {
     const response = await Label.find({ userId });
     res.status(200);
@@ -28,10 +25,8 @@ router.get("/", async (req, res) => {
   }
 });
 
-router.post("/", async (req, res) => {
+router.post("/", authenticateToken, async (req, res) => {
   const { title } = req.body;
-  const { authorization } = req.headers;
-  const userId = await checkIfUserExist(res, authorization);
 
   const resLabel = await Label.find({ title, userId });
 
@@ -50,13 +45,9 @@ router.post("/", async (req, res) => {
   }
 });
 
-router.put("/:id", async (req, res) => {
+router.put("/:id", authenticateToken, async (req, res) => {
   const { id } = req.params;
   const { title, color } = req.body;
-
-  const { authorization } = req.headers;
-
-  const userId = await checkIfUserExist(res, authorization);
 
   let editedObject = { ...returnKeyIfExist("color", color) };
   if (title) {
@@ -91,10 +82,8 @@ router.put("/:id", async (req, res) => {
   }
 });
 
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", authenticateToken, async (req, res) => {
   const { id } = req.params;
-  const { authorization } = req.headers;
-  const userId = await checkIfUserExist(res, authorization);
 
   const resLabel = await Label.find({ _id: id, userId });
 

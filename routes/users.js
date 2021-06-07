@@ -2,7 +2,10 @@ var express = require("express");
 const crypto = require("crypto");
 var router = express.Router();
 const { User } = require("../models");
-const { checkIfUserExist } = require("../utils/helperFunctions");
+const {
+  checkIfUserExist,
+  generateAccessToken,
+} = require("../utils/helperFunctions");
 
 const BYTES = 48;
 
@@ -11,16 +14,9 @@ router.post("/login", async (req, res) => {
   try {
     const users = await User.find(req.body);
     if (users.length === 1) {
-      const { _id } = users[0];
-      const token = crypto.randomBytes(BYTES).toString("hex");
-      const updatedToken = await User.updateOne({ _id }, { token });
-      if (updatedToken.nModified) {
-        res.status(200);
-        res.json({ token: `${token}:${users[0]._id}` });
-      } else {
-        res.status(500);
-        res.json({ message: "Something went wrong." });
-      }
+      const token = generateAccessToken(req.body.login);
+      res.status(200);
+      res.json({ token: `${token}:${users[0]._id}` });
     } else {
       res.status(404);
       res.json({ message: "User not found" });
@@ -37,14 +33,9 @@ router.post("/logout", async (req, res) => {
   try {
     const userId = await checkIfUserExist(res, authorization);
     if (userId) {
-      const updatedToken = await User.updateOne({ _id: userId }, { token: "" });
-      if (updatedToken.nModified) {
-        res.status(200);
-        res.json({ message: "Successfuly logedout." });
-      } else {
-        res.status(500);
-        res.json({ message: "Something went wrong." });
-      }
+      generateAccessToken(req.body.login);
+      res.status(200);
+      res.json({ message: "Successfuly logedout." });
     } else {
       res.status(404);
       res.json({ message: "User not found" });

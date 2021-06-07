@@ -1,5 +1,7 @@
 const { User } = require("../models");
+const jwt = require("jsonwebtoken");
 
+const token = process.env.TOKEN_SECRET;
 const authorizeUser = async (token, userId) => {
   try {
     const res = await User.find({ token, _id: userId });
@@ -34,4 +36,33 @@ const checkIfUserExist = async (res, authorization) => {
 
 const returnKeyIfExist = (key, value) => (key ? { [key]: value } : null);
 
-module.exports = { authorizeUser, checkIfUserExist, returnKeyIfExist };
+function generateAccessToken(username) {
+  console.log(username);
+  return jwt.sign({ username }, process.env.TOKEN_SECRET, {
+    expiresIn: "7d",
+  });
+} // 14 days
+
+function authenticateToken(req, res, next) {
+  const authHeader = req.headers["authorization"];
+  const token = authHeader && authHeader.split(":")[0];
+
+  if (token == null) next();
+
+  jwt.verify(token, process.env.TOKEN_SECRET, (err, user) => {
+    if (err) {
+      res.status(403);
+      return res.json({ message: "Missing creditials." });
+    }
+
+    next();
+  });
+}
+
+module.exports = {
+  authorizeUser,
+  checkIfUserExist,
+  returnKeyIfExist,
+  generateAccessToken,
+  authenticateToken,
+};
