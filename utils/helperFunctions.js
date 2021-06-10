@@ -37,7 +37,6 @@ const checkIfUserExist = async (res, authorization) => {
 const returnKeyIfExist = (key, value) => (key ? { [key]: value } : null);
 
 function generateAccessToken(username) {
-  console.log(username);
   return jwt.sign({ username }, process.env.TOKEN_SECRET, {
     expiresIn: "7d",
   });

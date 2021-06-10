@@ -70,7 +70,7 @@ router.put("/:id", authenticateToken, async (req, res) => {
   if (resLabel.length === 1) {
     try {
       const resEdit = await Label.updateOne({ _id: id }, { ...editedObject });
-      console.log(resEdit);
+
       if (resEdit?.n === 1) {
         res.status(200);
         res.json({ message: "Correctly edited." });

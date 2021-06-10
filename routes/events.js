@@ -130,7 +130,6 @@ router.get("/:date", authenticateToken, async (req, res) => {
 });
 
 router.patch("/check/:id", authenticateToken, async (req, res) => {
-  console.log(req.body);
   const [year, month, day] = req.body;
   const { authorization } = req.headers;
   const userId = authorization.split(":")[1];
