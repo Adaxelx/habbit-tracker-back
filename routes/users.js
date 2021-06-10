@@ -65,8 +65,8 @@ router.post("/register", async (req, res) => {
     res.json({ message });
   } else {
     try {
-      const token = crypto.randomBytes(BYTES).toString("hex");
-      const resCreate = await User.create({ ...req.body, token });
+      const token = generateAccessToken(req.body.login);
+      const resCreate = await User.create({ ...req.body });
 
       res.status(200);
       res.json({ token: `${token}:${resCreate._id}` });
